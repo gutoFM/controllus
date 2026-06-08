@@ -1,22 +1,22 @@
 name: 🚀 Deploy — Controllus
 
-# Dispara no push para main (produção) ou manualmente pelo GitHub UI
 on:
   push:
     branches: [master, main]
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: controllus   # ← nome exato do App Service no Azure
+  AZURE_WEBAPP_NAME: controllus
   NODE_VERSION: '20'
 
-# ─────────────────────────────────────────────────────────────────────────────
+# Job único — evita artifact upload/download que exclui pastas ocultas (.next)
 jobs:
-
-  # ── 1. Build ───────────────────────────────────────────────────────────────
-  build:
-    name: Build
+  build-and-deploy:
+    name: Build & Deploy → Azure
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
 
     steps:
       - name: 📥 Checkout
@@ -38,54 +38,25 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
-          # As secrets são usadas apenas em tempo de build se necessário.
-          # Em produção, lidas das App Settings do Azure (injetadas pelo Key Vault).
-          NASA_API_KEY:           ${{ secrets.NASA_API_KEY }}
-          RELIEFWEB_APP_NAME:     ${{ secrets.RELIEFWEB_APP_NAME }}
+          NASA_API_KEY:       ${{ secrets.NASA_API_KEY }}
+          RELIEFWEB_APP_NAME: ${{ secrets.RELIEFWEB_APP_NAME }}
 
-      # O output standalone não inclui public/ nem .next/static/ automaticamente.
-      # Copiamos manualmente conforme documentação Next.js.
       - name: 📋 Copiar public/ e static/ para o standalone
         run: |
-          cp -r public   .next/standalone/public
+          cp -r public .next/standalone/public
           cp -r .next/static .next/standalone/.next/static
-
-      - name: 📤 Upload do artefato de build
-        uses: actions/upload-artifact@v4
-        with:
-          name: controllus-build
-          path: .next/standalone
-          retention-days: 1
-
-  # ── 2. Deploy → Azure ──────────────────────────────────────────────────────
-  deploy:
-    name: Deploy → Azure App Service
-    runs-on: ubuntu-latest
-    needs: build
-
-    # Registra o deploy no GitHub Environments (aparece no Deployment Center)
-    environment:
-      name: production
-      url: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net
-
-    steps:
-      - name: 📥 Download do artefato
-        uses: actions/download-artifact@v4
-        with:
-          name: controllus-build
-          path: ./deploy
 
       - name: 🔐 Login no Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # Deploy direto do diretório — sem artifact para preservar pastas ocultas
       - name: 🚀 Deploy para Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package:  ./deploy
-          # Standalone Next.js é iniciado com node server.js (não npm start)
+          package: .next/standalone
           startup-command: node server.js
 
       - name: 🔓 Logout do Azure
