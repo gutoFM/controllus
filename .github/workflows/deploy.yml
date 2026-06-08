@@ -3,7 +3,7 @@ name: 🚀 Deploy — Controllus
 # Dispara no push para main (produção) ou manualmente pelo GitHub UI
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   workflow_dispatch:
 
 env:
