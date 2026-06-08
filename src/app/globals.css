@@ -2,22 +2,113 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Variáveis CSS — Design System Controllus ─────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Fundos */
+  --bg-1: #050A18;
+  --bg-2: #0A0F1E;
+  --bg-3: #0F1629;
+
+  /* Destaque */
+  --accent:       #00D4FF;
+  --accent-hover: #00A3C4;
+  --accent-halo:  rgba(0, 212, 255, 0.15);
+
+  /* Severidade */
+  --sev-baixa:   #00FF88;
+  --sev-media:   #FFB300;
+  --sev-alta:    #FF4444;
+  --sev-critica: #FF0066;
+
+  /* Texto */
+  --text-1:   #E2E8F0;
+  --text-2:   #94A3B8;
+  --text-dis: #475569;
+
+  /* Bordas */
+  --border:        rgba(255, 255, 255, 0.08);
+  --border-accent: rgba(0, 212, 255, 0.3);
+
+  /* Glassmorphism */
+  --glass-bg:   rgba(10, 15, 30, 0.7);
+  --glass-blur: blur(16px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Reset base ────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden; /* O globo ocupa 100vh — sem scroll na página */
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ciano (padrão em todos os contêineres roláveis) ────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.25);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.45);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 212, 255, 0.3) transparent;
+}
+
+/* ─── Glassmorphism — classe utilitária ─────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+}
+
+/* ─── Glow por severidade ───────────────────────────────────────────────── */
+.glow-baixa   { box-shadow: 0 0 12px rgba(0,  255, 136, 0.4); }
+.glow-media   { box-shadow: 0 0 12px rgba(255, 179, 0,   0.4); }
+.glow-alta    { box-shadow: 0 0 12px rgba(255, 68,  68,  0.4); }
+.glow-critica { box-shadow: 0 0 12px rgba(255, 0,   102, 0.4); }
+
+/* ─── Animação de pulso para ponto selecionado no globo ─────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0;   }
+}
+
+/* ─── Animação de ponto de status online ────────────────────────────────── */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.status-dot {
+  animation: status-pulse 2s ease-in-out infinite;
 }
 
 @layer utilities {
